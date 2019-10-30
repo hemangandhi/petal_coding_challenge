@@ -1,3 +1,5 @@
+# Introduction
+
 This is the semiformal program spec for Hari Amoor's CSV analyzer (technical challenge for Petal).
 
 # Running the Code
