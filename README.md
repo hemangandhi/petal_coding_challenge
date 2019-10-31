@@ -7,7 +7,7 @@ This is the semiformal program spec for Hari Amoor's CSV analyzer (technical cha
 Please run the code as follows:
 
 ```
-./csv_analyzer -f file_1.csv.gz file_2.csv.gz
+./csv_analyzer file_1.csv.gz file_2.csv.gz
 ```
 
 The file names can be arbitrary, as long as they're separated by spaces. Furthermore, as many files as needed can be included, and the program will run them all on multiple processes.

@@ -1,6 +1,6 @@
 from collections import defaultdict
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import date
 from typing import Dict
 from enum import Enum
 
@@ -13,13 +13,13 @@ class TransactionType(Enum):
 
 
 @dataclass(frozen=True)
-class Transaction(object):
+class Transaction:
     amount: float
     transaction_type: TransactionType
 
 
 class UserAnalysis:
-    def __init__():
+    def __init__(self):
         self.num_transactions = 0
         self.sum_transactions = 0
         self.balances = defaultdict(float)
@@ -37,19 +37,19 @@ class Analyzer:
     start_row = ("user_id", "n", "sum", "min", "max")
 
     def __init__(self, read_file):
-        self.data = defaultdict(lambda: UserAnalysis())
-        self.write_file = re.sub(r"(.*)\.csv", "\1_output.csv")
+        self.data = defaultdict(UserAnalysis)
+        self.write_file = re.sub(r"(.*)\.csv", r"\1_output.csv", read_file)
 
-    def add_transaction(user_id: int, date: datetime.date, trans: Transaction):
+    def add_transaction(self, user_id: int, transaction_date: date, trans: Transaction):
         analysis = self.data[user_id]
-
         analysis.num_transactions += 1
+
         if trans.transaction_type == TransactionType.CREDIT:
             analysis.sum_transactions += trans.amount
-            analysis.balances[date] += trans.amount
+            analysis.balances[transaction_date] += trans.amount
         else:
             analysis.sum_transactions -= trans.amount
-            analysis.balances[date] -= trans.amount
+            analysis.balances[transaction_date] -= trans.amount
 
     @staticmethod
     def get_report(analysis: UserAnalysis) -> UserReport:
@@ -57,8 +57,8 @@ class Analyzer:
         min_balance = 0.0
         max_balance = 0.0
 
-        for date in sorted(analysis.balances.keys()):
-            running_balance += analysis.balances[date]
+        for transaction_date in sorted(analysis.balances.keys()):
+            running_balance += analysis.balances[transaction_date]
 
             min_balance = min(min_balance, running_balance)
             max_balance = max(max_balance, running_balance)
@@ -69,7 +69,7 @@ class Analyzer:
             min_balance,
             max_balance)
 
-    def write_output():
+    def write_output(self):
         with open(self.write_file, "w", newline="") as fp:
             writer = csv.writer(fp, delimiter=",")
             writer.writerow(Analyzer.start_row)
