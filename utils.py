@@ -1,15 +1,25 @@
 from collections import defaultdict
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import date
-from typing import Dict
 from enum import Enum
 
+import csv
 import re
 
 
 class TransactionType(Enum):
     CREDIT = 1
     DEBIT = 2
+
+    @classmethod
+    def from_str(cls, trans_type: str):
+        if trans_type == "credit":
+            return cls.CREDIT
+        elif trans_type == "debit":
+            return cls.DEBIT
+        else:
+            raise IllegalArgumentException(
+                "Transaction type not of proper format")
 
 
 @dataclass(frozen=True)
@@ -36,11 +46,15 @@ class UserReport:
 class Analyzer:
     start_row = ("user_id", "n", "sum", "min", "max")
 
-    def __init__(self, read_file):
+    def __init__(self, write_file: str):
         self.data = defaultdict(UserAnalysis)
-        self.write_file = re.sub(r"(.*)\.csv", r"\1_output.csv", read_file)
+        self.write_file = write_file
 
-    def add_transaction(self, user_id: int, transaction_date: date, trans: Transaction):
+    def add_transaction(
+            self,
+            user_id: int,
+            transaction_date: date,
+            trans: Transaction):
         analysis = self.data[user_id]
         analysis.num_transactions += 1
 
@@ -76,4 +90,9 @@ class Analyzer:
 
             for (user_id, analysis) in self.data.items():
                 report = Analyzer.get_report(analysis)
-                writer.writerow((user_id,) + report.astuple())
+                writer.writerow(
+                    (user_id,
+                     report.num_transactions,
+                     "{0:.2f}".format(round(report.sum_transactions, 2)),
+                     "{0:.2f}".format(round(report.min_balance, 2)),
+                     "{0:.2f}".format(round(report.max_balance, 2))))
