@@ -1,15 +1,19 @@
 #!/usr/bin/env python
 from datetime import date, datetime
+from typing import List
+import multiprocessing as mp
+
+import argparse
 import csv
 import re
 import sys
 import utils
 
 
-csv.register_dialect("pipes", delimiter="|", escapechar="\\")
-
-
 def process_csv(read_file):
+    if not re.match(r"(.*)\.csv$", read_file):
+        raise ValueError("All files must be given the .csv extension")
+
     with open(read_file, "r", newline="") as fp:
         write_file = re.sub(r"(.*)\.csv", r"\1_output.csv", read_file)
         analyzer = utils.Analyzer(write_file)
@@ -32,10 +36,22 @@ def process_csv(read_file):
         analyzer.write_output()
 
 
-def main():
-    for file_name in sys.argv[1:]:
-        process_csv(file_name)
+def main(files: List[str], processes: int):
+    csv.register_dialect("pipes", delimiter="|", escapechar="\\")
+    processes = min(processes, len(files), mp.cpu_count())
+    
+    if processes > 1:
+        pool = mp.Pool(processes)
+        pool.map(process_csv, files)
+    else:
+        for read_file in files:
+            process_csv(read_file)
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-f", "--files", nargs="+", help="CSV files to be processed")
+    parser.add_argument("-p", "--processes", help="Max number of processes to be spawned", type=int, default=1)
+
+    args = parser.parse_args()
+    main(args.files, args.processes)
