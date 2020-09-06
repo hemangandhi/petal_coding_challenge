@@ -12,6 +12,7 @@ enum TransactionType {
 }
 
 #[derive(Debug, Deserialize)]
+#[serde(field_identifier, rename_all = "snake_case")] // just a precaution
 struct Transaction {
     user_id: i64,
     account_id: i64,
@@ -100,7 +101,7 @@ fn read_stream(path: &str, input: &mut impl Read) {
                     *current_ref =
                         txns.fold(*current_ref, |info, txn| info.append_transaction(txn));
                 });
-            daily_summaries
+            (user_id, daily_summaries)
         })
 }
 
